@@ -46,7 +46,6 @@ def prepare_prompt(i, queries, answers, answer_choice, llama_answers, mistral_an
     return prompt
 
 def get_response(api_key, model, prompt, max_attempts=5):
-    # print("Opening get response")
     client = OpenAI(api_key=api_key)
     attempts = 0
     response_object = {'responses': []}
@@ -78,7 +77,6 @@ def get_response(api_key, model, prompt, max_attempts=5):
     return response_object
 
 def process_filter_batch(args):
-    # print("entered here")
     api_key, model, prompt = args
     return get_response(api_key, model, prompt)
 
@@ -129,10 +127,8 @@ def refine():
         )
     
     for output in results:
-        # print(output)
         responses.append(output)
     
-    # print(responses)
     response_object = {'responses': responses}
     save_list_to_file(response_object, "./test_responses.json")
         

@@ -24,9 +24,13 @@ mmlu_dict = {int(item['query_id']): item for item in mmlu_data}
 mistral_dict = {int(item['query_id']): item for item in mistral_data}
 llama_dict = {int(item['query_id']): item for item in llama_data}
 gpt_dict = {int(item['id']): item for item in gpt_data['responses']}
-sorted_query_ids = sorted(mmlu_dict.keys())
-
+sorted_query_ids = sorted(mistral_dict.keys())
+# breakpoint()
 for key in tqdm(sorted_query_ids, desc="Processing queries", unit="query"):
+    if key > 2000:
+        gpt_key = key - 4000
+    else:
+        gpt_key = key
     response = {
         "query_id": key,
         "query": mmlu_dict[key]["question"],
@@ -34,9 +38,10 @@ for key in tqdm(sorted_query_ids, desc="Processing queries", unit="query"):
         "correct_answer": mmlu_dict[key]["mmlu_answer"],
         "mistral_response": mistral_dict.get(key, {}).get("full_response", "N/A"),
         "llama_response": llama_dict.get(key, {}).get("full_response", "N/A"),
-        "label": gpt_dict.get(key, {}).get("llm", "N/A"),
+        "label": gpt_dict.get(gpt_key, {}).get("llm", "N/A"),
     }
-    results.append(response)
+    if response['label'] != "N/A" and response['label'] != "" and response['label'] != "Ground Truth" and response['label'] != "none" and response['label'] != "None" and response['label'] != "Insight":
+        results.append(response)
 
 for output in results:
     responses.append(output)

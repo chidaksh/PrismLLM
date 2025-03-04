@@ -1,6 +1,7 @@
 import torch
 from vllm import LLM, SamplingParams
 import time
+import sys
 
 def load_llama_vllm(model_name="astronomer/Llama-3-8B-GPTQ-4-Bit"):
     llm = LLM(model_name, tensor_parallel_size=torch.cuda.device_count(), dtype="float16")
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     try:
         llm = load_llama_vllm()
         _ = run_llama_vllm(llm, "Warmup", max_tokens=10)
-        query = "Explain the difference between supervised and unsupervised learning with concrete examples."
+        query = sys.argv[1]
         response = run_llama_vllm(llm, query, max_tokens=500)
         print("\nResponse:", response)
         

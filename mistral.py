@@ -1,8 +1,7 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from time import perf_counter
-
-MODEL_NAME = "unsloth/mistral-7b-bnb-4bit"
+import sys
 
 def load_pre_quantized_model(model_name: str):
     model = AutoModelForCausalLM.from_pretrained(
@@ -17,12 +16,8 @@ def initialize_tokenizer(model_name: str):
     tokenizer.pad_token_id = tokenizer.eos_token_id
     return tokenizer
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model = load_pre_quantized_model(MODEL_NAME).to(device)
-tokenizer = initialize_tokenizer(MODEL_NAME)
-
-def run_mistral(text_input, max_tokens=500, temperature=0.7, top_p=0.9, deterministic=False):
-    prompt = f"""<s>[INST]You are a helpful AI agent. Unless specified, your response needs to be precise, focused, and straight to the point. Avoid unnecessary elaboration. Answer the question and also provide a clear and logical reasoning.\n User query: {text_input}[/INST]"""
+def run_mistral(text_input, model, max_tokens=500, temperature=0.7, top_p=0.9, deterministic=False, tokenizer=None, device=None):
+    prompt = f"""<s>[INST]You are a helpful AI agent. Answer the question and also provide a clear and logical reasoning.\n User query: {text_input}[/INST]"""
 
     start_time = perf_counter()
     encoded = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to(device)
@@ -44,9 +39,15 @@ def run_mistral(text_input, max_tokens=500, temperature=0.7, top_p=0.9, determin
     print(f"Time taken for inference: {round(output_time, 2)} seconds")
     return decoded[0]
 
+def load_mistral():
+    MODEL_NAME = "unsloth/mistral-7b-bnb-4bit"
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    model = load_pre_quantized_model(MODEL_NAME).to(device)
+    tokenizer = initialize_tokenizer(MODEL_NAME)
+    return model, tokenizer, device
+
 if __name__ == "__main__":
-    user_input = """How many times does the letter 'r' appear in the word strawberry? 
-    Options: [A] 1 [B] 2 [C] 3 [D] 4 """
-    
-    output = run_mistral(user_input, max_tokens=50, temperature=0.7, top_p=0.9, deterministic=False)
+    user_input = sys.argv[1]
+    model, tokenizer, device = load_mistral()
+    output = run_mistral(user_input, model, max_tokens=50, temperature=0.7, top_p=0.9, deterministic=False, tokenizer=tokenizer, device=device)
     print(output)
