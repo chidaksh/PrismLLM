@@ -16,8 +16,9 @@ def initialize_tokenizer(model_name: str):
     tokenizer.pad_token_id = tokenizer.eos_token_id
     return tokenizer
 
-def run_mistral(text_input, model, max_tokens=500, temperature=0.7, top_p=0.9, deterministic=False, tokenizer=None, device=None):
-    prompt = f"""<s>[INST]You are a helpful AI agent. Answer the question and also provide a clear and logical reasoning.\n User query: {text_input}[/INST]"""
+def run_mistral(text_input, model, max_tokens=128, temperature=0.7, top_p=0.9, deterministic=False, tokenizer=None, device=None):
+    prompt = f"""<s>[INST] You are an AI assistant designed to provide helpful and clear responses. Please answer the following user query with detailed reasoning. 
+    User query: {text_input} [/INST]"""
 
     start_time = perf_counter()
     encoded = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to(device)
@@ -49,5 +50,6 @@ def load_mistral():
 if __name__ == "__main__":
     user_input = sys.argv[1]
     model, tokenizer, device = load_mistral()
-    output = run_mistral(user_input, model, max_tokens=50, temperature=0.7, top_p=0.9, deterministic=False, tokenizer=tokenizer, device=device)
-    print(output)
+    output = run_mistral(user_input, model, max_tokens=128, temperature=0.7, top_p=0.9, deterministic=False, tokenizer=tokenizer, device=device)
+    with open("output.txt", "w") as f:
+        f.write(output)

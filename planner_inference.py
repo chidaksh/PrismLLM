@@ -51,15 +51,20 @@ if __name__ == "__main__":
     model, tokenizer, classifier = load_model_and_classifier(model_path, classifier_path)
     
     random_query = sys.argv[1]
-    print("Query:", random_query)
     predicted_llm = infer_routing(model, classifier, tokenizer, random_query)
     response = None
     
     if predicted_llm == "Llama":
+        print("Routing to Llama")
         llm = load_llama_vllm()
         response = run_llama_vllm(llm, user_query=random_query)
     else:
+        print("Routing to Mistral")
         model, tokenizer, device = load_mistral()
         response = run_mistral(random_query, model, tokenizer=tokenizer, device=device)
         
-    print(predicted_llm, response)
+    with open("output.txt", "w") as f:
+        f.write(response)
+        
+    # with open("llm.txt", "w") as f:
+    #     f.write(f'LLM: {predicted_llm}')

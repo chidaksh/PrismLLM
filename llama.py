@@ -37,8 +37,9 @@ if __name__ == "__main__":
         llm = load_llama_vllm()
         _ = run_llama_vllm(llm, "Warmup", max_tokens=10)
         query = sys.argv[1]
-        response = run_llama_vllm(llm, query, max_tokens=500)
-        print("\nResponse:", response)
+        response = run_llama_vllm(llm, query, max_tokens=128)
+        with open("output.txt", "w") as f:
+            f.write(response)
         
     except Exception as e:
         print(f"Error: {e}")
