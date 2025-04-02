@@ -10,16 +10,16 @@ import time
 from llama import load_llama_vllm, run_llama_vllm
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run Llama inference on MMLU queries")
-    parser.add_argument("--input_file", type=str, default="mmlu_extracts/llama_queries.csv",
-                        help="Path to CSV file with MMLU queries")
-    parser.add_argument("--output_file", type=str, default="mmlu_extracts/llama_responses.json",
+    parser = argparse.ArgumentParser(description="Run Llama inference on TriviaQA queries")
+    parser.add_argument("--input_file", type=str, default="/content/drive/MyDrive/midterm_proj/triviaqa_extracts/llm_queries.csv",
+                        help="Path to CSV file with TriviaQA queries")
+    parser.add_argument("--output_file", type=str, default="/content/drive/MyDrive/midterm_proj/triviaqa_extracts/llama_responses.json",
                         help="Path to save Llama responses")
     parser.add_argument("--model_name", type=str, default="astronomer/Llama-3-8B-GPTQ-4-Bit",
                         help="Model name or path")
     parser.add_argument("--max_tokens", type=int, default=512,
                         help="Maximum number of tokens to generate")
-    parser.add_argument("--batch_size", type=int, default=1,
+    parser.add_argument("--batch_size", type=int, default=512,
                         help="Number of queries to process in parallel (if supported by vLLM)")
     return parser.parse_args()
 
@@ -45,7 +45,7 @@ def run_inference():
     # Create output directory if it doesn't exist
     os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
     
-    # Load MMLU queries
+    # Load TriviaQA queries
     queries_df = pd.read_csv(args.input_file)
     print(f"Loaded {len(queries_df)} queries from {args.input_file}")
     
@@ -56,7 +56,7 @@ def run_inference():
     print("Running warm-up query...")
     _ = run_llama_vllm(llm, "Warmup query", max_tokens=10)
     
-    print(f"Processing MMLU queries...")
+    print(f"Processing TriviaQA queries...")
     
     results = []
     total_time = 0
