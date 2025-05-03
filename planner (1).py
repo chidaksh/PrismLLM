@@ -15,8 +15,6 @@ from sklearn.model_selection import train_test_split
 import sys
 from peft import get_peft_model, LoraConfig, TaskType
 
-print("hi")
-# Create log file with timestamp for uniqueness
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 log_filename = f"planner_training_{timestamp}.log"
 

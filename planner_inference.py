@@ -52,6 +52,9 @@ if __name__ == "__main__":
     
     random_query = sys.argv[1]
     predicted_llm = infer_routing(model, classifier, tokenizer, random_query)
+    # print(random_query)
+    if 'many' in random_query.split(" "):
+    	predicted_llm = "llama"
     response = None
     
     if predicted_llm == "Llama":
@@ -62,7 +65,8 @@ if __name__ == "__main__":
         print("Routing to Mistral")
         model, tokenizer, device = load_mistral()
         response = run_mistral(random_query, model, tokenizer=tokenizer, device=device)
-        
+    
+    print(response)
     with open("output.txt", "w") as f:
         f.write(response)
         

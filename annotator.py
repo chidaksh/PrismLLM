@@ -83,7 +83,6 @@ def prepare_swag_prompt(i, ctx, ctx_a, ctx_b, activity_label, choice, llama_answ
     return prompt
 
 
-
 def get_response(api_key, model, prompt, keys, max_attempts=3,):
     client = OpenAI(api_key=api_key)
     attempts = 0
@@ -255,6 +254,75 @@ def refine_swag():
     save_list_to_file(response_object, "./swag_ann.json") 
     return 
 
+def refine_trivia():
+    llama_swag = load_json_data("./evaluated_llama_responses.json")
+    mistral_swag = load_json_data("./evaluated_mistral_responses.json")
+    total_len = len(llama_swag)
+    activity_labels = [None] * total_len
+    ctxs = [None] * total_len
+    ctx_as = [None] * total_len
+    ctx_bs = [None] * total_len
+    choices = [None] * total_len
+    llama_answers = [None] * total_len
+    mistral_answers = [None] * total_len
+    ids = []
+    responses = []
+    for i in range(total_len):
+        try:
+            assert llama_swag[i]['question_index'] == mistral_swag[i]['ind'], f"Mismatch at index {i}"
+            ids.append(llama_swag[i]['question_index'])
+            ctxs[i] = llama_swag[i]['context']
+            ctx_as[i] = mistral_swag[i]['ctx_a']
+            ctx_bs[i] = mistral_swag[i]['ctx_b']
+            activity_labels[i] = llama_swag[i]['activity_label']
+            choices[i] = llama_swag[i]['ending_options']
+            llama_answers[i] = llama_swag[i]['llama_reasoning']
+            mistral_answers[i] = mistral_swag[i]['mistral_response']
+        except Exception as e:
+            print(f"Error processing index {i}: {e}") 
+            exit(-1)
+        
+    tasks = []
+    api_key = ""
+    swag_keys = ["id", "llm", "justification"]
+    for i in range(total_len):
+        prompt = prepare_swag_prompt(i, ctxs[i], ctx_as[i], ctx_bs[i], activity_labels[i], choices[i], llama_answers[i], mistral_answers[i])
+        tasks.append((api_key, "gpt-4o-mini", prompt, swag_keys))
+    # tasks = tasks[:5]
+    with multiprocessing.Pool(processes=2*multiprocessing.cpu_count()) as pool:
+        results = list(
+            tqdm(
+                pool.imap_unordered(process_filter_batch, tasks),
+                total=len(tasks),
+                desc="Processing batches"
+            )
+        )
+    
+    for output in results:
+        output['chosen_model'] = output['llm'].replace("Llama", "llama").replace("Mistral", "mistral")
+        if output['chosen_model'] == "llama":
+            output['chosen_response'] = llama_answers[output['id']]
+            output['rejected_response'] = mistral_answers[output['id']]
+            output['rejected_model'] = "mistral"
+        elif output['chosen_model'] == "mistral":
+            output['chosen_response'] = mistral_answers[output['id']]
+            output['rejected_response'] = llama_answers[output['id']]
+            output['rejected_model'] = "llama"
+        else:
+            print("Error in model selection")
+        output['ctx'] = ctxs[output['id']]
+        output['ctx_a'] = ctx_as[output['id']]
+        output['ctx_b'] = ctx_bs[output['id']]
+        output['activity_label'] = activity_labels[output['id']]
+        output['choices'] = choices[output['id']]
+        del output['llm']
+        responses.append(output)
+    
+    response_object = {'responses': responses}
+    save_list_to_file(response_object, "./swag_ann.json") 
+    return 
+
 if __name__ == "__main__":
     refine_squad()
     refine_swag()
+    refine_trivia()

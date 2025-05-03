@@ -1,0 +1,6 @@
+
+
+    [ANS] The user is asking for a mathematical operation to be performed on a set of numbers. To answer this query, you can follow these steps:
+    1. First, identify the relevant information in the question. In this case, there are two chocolates, and one has been eaten by Pavan.
+    2. Next, perform the subtraction operation on the number of chocolates. Subtracting one from two gives us one chocolate remaining.
+    3. Finally, present your answer to the user, along with the explanation of how you arrived at that answer. For example
